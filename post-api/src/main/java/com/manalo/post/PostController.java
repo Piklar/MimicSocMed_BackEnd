@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -28,8 +29,31 @@ public class PostController {
 
     @PostMapping
     public ResponseEntity<Post> createPost(@RequestBody Post post) {
-        Post savedPost = postRepository.save(post);
-        return new ResponseEntity<>(savedPost, HttpStatus.CREATED);
+        try {
+            System.out.println("Received Post: " + post);
+            // Ensure createdAt and updatedAt are set during creation
+            post.setCreatedAt(LocalDateTime.now());
+            post.setUpdatedAt(LocalDateTime.now());
+            Post savedPost = postRepository.save(post);
+            return new ResponseEntity<>(savedPost, HttpStatus.CREATED);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Post> updatePost(@PathVariable Long id, @RequestBody Post updatedPost) {
+        return postRepository.findById(id)
+                .map(post -> {
+                    post.setTitle(updatedPost.getTitle()); // Update title
+                    post.setContent(updatedPost.getContent());
+                    post.setImageUrl(updatedPost.getImageUrl());
+                    post.setUpdatedAt(LocalDateTime.now());
+                    Post savedPost = postRepository.save(post);
+                    return ResponseEntity.ok(savedPost);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")

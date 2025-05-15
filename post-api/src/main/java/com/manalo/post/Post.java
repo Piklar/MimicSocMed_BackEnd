@@ -12,6 +12,9 @@ public class Post {
     private Long id;
 
     @Column(nullable = false)
+    private String title; // New title field
+
+    @Column(nullable = false)
     private String content;
 
     @Column(nullable = false)
@@ -29,7 +32,8 @@ public class Post {
     // Constructors
     public Post() {}
 
-    public Post(String content, String imageUrl, String author) {
+    public Post(String title, String content, String imageUrl, String author) {
+        this.title = title;
         this.content = content;
         this.imageUrl = imageUrl;
         this.author = author;
@@ -44,6 +48,14 @@ public class Post {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public String getContent() {
