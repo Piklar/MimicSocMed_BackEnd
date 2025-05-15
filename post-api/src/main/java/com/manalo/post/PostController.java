@@ -5,11 +5,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = {"http://localhost:5173", "https://final-ui-0bb3.onrender.com/"})
+@CrossOrigin(origins = {"http://localhost:5173", "https://final-ui-0bb3.onrender.com"})
 @RequestMapping("/manalo/posts")
 public class PostController {
 
@@ -29,17 +28,18 @@ public class PostController {
     }
 
     @PostMapping
-    public ResponseEntity<Post> createPost(@RequestBody Post post) {
+    public ResponseEntity<?> createPost(@RequestBody Post post) {
         try {
-            System.out.println("Received Post: " + post);
-            // Ensure createdAt and updatedAt are set during creation
-            post.setCreatedAt(LocalDateTime.now());
-            post.setUpdatedAt(LocalDateTime.now());
-            Post savedPost = postRepository.save(post);
+            // Ensure author, title, content, and imageUrl are not null (basic validation)
+            if (post.getAuthor() == null || post.getTitle() == null || post.getContent() == null || post.getImageUrl() == null) {
+                return ResponseEntity.badRequest().body("Missing required fields");
+            }
+
+            Post savedPost = postRepository.save(post); // Lifecycle methods will set timestamps
             return new ResponseEntity<>(savedPost, HttpStatus.CREATED);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while saving the post.");
         }
     }
 
@@ -47,10 +47,10 @@ public class PostController {
     public ResponseEntity<Post> updatePost(@PathVariable Long id, @RequestBody Post updatedPost) {
         return postRepository.findById(id)
                 .map(post -> {
-                    post.setTitle(updatedPost.getTitle()); // Update title
+                    post.setTitle(updatedPost.getTitle());
                     post.setContent(updatedPost.getContent());
                     post.setImageUrl(updatedPost.getImageUrl());
-                    post.setUpdatedAt(LocalDateTime.now());
+                    // No need to manually update updatedAt — handled by @PreUpdate
                     Post savedPost = postRepository.save(post);
                     return ResponseEntity.ok(savedPost);
                 })
